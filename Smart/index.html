@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.0/dist/web3.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #fff;
+            border-radius: 5px;
+            background-color: #111;
+        }
+        h1 {
+            text-align: center;
+            font-size: 24px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #fff;
+            border-radius: 3px;
+            background-color: #111;
+            color: #fff;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #fff;
+            color: #000;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #ccc;
+        }
+        #balance {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+        .slider-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .slider-image {
+            max-width: 100%;
+        max-height: 350px; 
+        width: auto;
+        }
+        select {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #fff;
+            border-radius: 3px;
+            background-color: #111;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Institute Payment Portal</h1>
+        <div class="slider-container">
+            <img class="slider-image" src="slider.jpg" alt="Slider Image">
+        </div>
+        <label for="amount">Deposit Amount:</label>
+        <input type="text" id="amount">
+        <button id="deposit">Deposit</button><br>
+        <label for="transferAmount">Transfer Amount:</label>
+        <input type="text" id="transferAmount">
+        <label for="userType">Select User Type:</label>
+        <select id="userType">
+            <option value="student">Student</option>
+            <option value="researcher">Researcher</option>
+        </select>
+        <button id="transfer">Transfer</button>
+        
+        <p id='balance'></p>
+        <div>
+            <button id="navigateToStudentPage">Go to Student Page</button>
+        </div>
+    </div>
+ 
+    
+    <script>
+        var contract;
+        $(document).ready(function(){
+            web3 = new Web3(web3.currentProvider);
+            var abi =[
+	{
+		"inputs": [
+			{
+				"internalType": "int256",
+				"name": "amount",
+				"type": "int256"
+			}
+		],
+		"name": "deposit",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "int256",
+				"name": "amount",
+				"type": "int256"
+			},
+			{
+				"internalType": "string",
+				"name": "User",
+				"type": "string"
+			}
+		],
+		"name": "transfer",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "getBalance",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "studentAddress",
+				"type": "address"
+			}
+		],
+		"name": "getStudentBalance",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "index",
+				"type": "uint256"
+			}
+		],
+		"name": "getTransaction",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			},
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getTransactionCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "students",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "balance",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "transactions",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "amount",
+				"type": "int256"
+			},
+			{
+				"internalType": "string",
+				"name": "User",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+];
+            var address = "0x5a665Fa1Fa78f662bA458319242F9dE9bec0Ff6b"; 
+
+            contract = new web3.eth.Contract(abi,address);
+
+            contract.methods.getBalance().call().then(function(bal){
+                $('#balance').html("Balance: " + bal + " Qar");
+            });
+        })
+
+        $('#deposit').click(function()
+        {
+            var amt = 0;
+            amt = parseInt($('#amount').val());
+
+            web3.eth.getAccounts().then(function(accounts)
+            {
+                var acc = accounts[0];                
+                console.log("Connected to MetaMask account:", acc);
+                var userType = $('#userType').val(); // Get the selected user type
+                // You can use the userType variable when calling your contract's methods
+                return contract.methods.deposit(amt).send({from: acc});
+            }).then(function(tx)
+            {
+                    console.log("Transaction ID: " + tx.transactionHash);
+                $('#transactionId').html("Transaction ID: " + tx.transactionHash);
+                    //
+            }).catch(function(tx)
+            {
+                console.log(tx);
+            })
+
+        })
+
+
+        /////////////tranms
+        $('#transfer').click(function () {
+    var transferAmt = 0;
+    transferAmt = parseInt($('#transferAmount').val()); // Read transfer amount from input field
+    var userType = $('#userType').val(); // Read user type from dropdown
+
+    web3.eth.getAccounts().then(function (accounts) {
+        var acc = accounts[0];
+        console.log("Connected to MetaMask account:", acc);
+
+        // Call the contract's transfer function with the selected user type and transfer amount
+        return contract.methods.transfer(transferAmt, userType).send({ from: acc });
+    }).then(function (tx) {
+        console.log("Transaction ID: " + tx.transactionHash);
+        $('#transactionId').html("Transaction ID: " + tx.transactionHash);
+    }).catch(function (error) {
+        console.error(error);
+    });
+});   
+        ///
+
+    </script>
+    <script>
+        document.getElementById("navigateToStudentPage").addEventListener("click", function() {
+            window.location.href = "student.html"; // Redirect to student.html
+        });
+    </script>
+    
+</body>
+</html>
